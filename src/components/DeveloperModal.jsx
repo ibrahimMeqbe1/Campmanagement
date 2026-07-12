@@ -1,15 +1,15 @@
 import React from "react";
-import { 
-  FaGithub, 
-  FaBehance, 
-  FaGlobe, 
-  FaLinkedin, 
-  FaEnvelope, 
-  FaWhatsapp, 
-  FaTimes, 
-  FaGraduationCap, 
-  FaCode, 
-  FaBriefcase 
+import {
+  FaGithub,
+  FaBehance,
+  FaGlobe,
+  FaLinkedin,
+  FaEnvelope,
+  FaWhatsapp,
+  FaTimes,
+  FaGraduationCap,
+  FaCode,
+  FaBriefcase
 } from "react-icons/fa";
 
 const DeveloperModal = ({ onClose }) => {
@@ -24,22 +24,22 @@ const DeveloperModal = ({ onClose }) => {
             <FaTimes />
           </button>
         </div>
-        
+
         <div className="modal-form" style={{ maxHeight: "75vh", overflowY: "auto", padding: "1.5rem" }}>
-          
+
           {/* قسم الصورة والتعريف البسيط */}
           <div className="dev-hero-section" style={{ display: "flex", gap: "20px", alignItems: "center", marginBottom: "20px" }}>
-            <img 
-              src="/developer.jpg" 
-              alt="Eng. Ibrahim Meqbel" 
-              style={{ 
-                width: "120px", 
-                height: "120px", 
-                borderRadius: "50%", 
-                objectFit: "cover", 
+            <img
+              src="/developer.jpg"
+              alt="Eng. Ibrahim Meqbel"
+              style={{
+                width: "120px",
+                height: "120px",
+                borderRadius: "50%",
+                objectFit: "cover",
                 border: "4px solid #b89647",
                 boxShadow: "0 4px 10px rgba(0,0,0,0.15)"
-              }} 
+              }}
             />
             <div className="dev-meta">
               <h3 style={{ margin: 0, fontSize: "1.4rem", color: "#0f5132", fontWeight: 800 }}>المهندس إبراهيم مقبل</h3>
