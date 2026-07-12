@@ -9,6 +9,7 @@ import {
   query, 
   orderBy 
 } from "firebase/firestore";
+import { encryptData, decryptData } from "../utils/security";
 
 // بيانات تجريبية افتراضية للمخيم
 const defaultFamilies = [
@@ -1834,8 +1835,8 @@ const initLocalStorage = () => {
   localStorage.removeItem("kareem_camp_families");
   localStorage.removeItem("kareem_camp_families_real");
   
-  if (!localStorage.getItem("kareem_camp_families_v4")) {
-    localStorage.setItem("kareem_camp_families_v4", JSON.stringify(defaultFamilies));
+  if (!localStorage.getItem("kareem_camp_families_v5")) {
+    localStorage.setItem("kareem_camp_families_v5", encryptData(defaultFamilies));
   }
 };
 
@@ -1849,9 +1850,11 @@ const notifyDemoSubscribers = () => {
 
 const getDemoFamilies = () => {
   initLocalStorage();
-  const data = JSON.parse(localStorage.getItem("kareem_camp_families_v4") || "[]");
+  const ciphertext = localStorage.getItem("kareem_camp_families_v5");
+  const data = ciphertext ? decryptData(ciphertext) : null;
+  const families = data || [];
   // فرز تصاعدي حسب تاريخ الإنشاء (الجديد في آخر الكشف)
-  return data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  return families.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 };
 
 // ----------------------
@@ -1916,7 +1919,7 @@ export const addFamily = async (familyData) => {
     const families = getDemoFamilies();
     const id = "demo-" + Date.now();
     families.push({ id, ...newFamily });
-    localStorage.setItem("kareem_camp_families_v4", JSON.stringify(families));
+    localStorage.setItem("kareem_camp_families_v5", encryptData(families));
     notifyDemoSubscribers();
     return id;
   } else {
@@ -1953,7 +1956,7 @@ export const updateFamily = async (id, familyData) => {
     const index = families.findIndex(f => f.id === id);
     if (index !== -1) {
       families[index] = { ...families[index], ...updatedData };
-      localStorage.setItem("kareem_camp_families_v4", JSON.stringify(families));
+      localStorage.setItem("kareem_camp_families_v5", encryptData(families));
       notifyDemoSubscribers();
     }
   } else {
@@ -1970,7 +1973,7 @@ export const deleteFamily = async (id) => {
   if (isDemoMode) {
     let families = getDemoFamilies();
     families = families.filter(f => f.id !== id);
-    localStorage.setItem("kareem_camp_families_v4", JSON.stringify(families));
+    localStorage.setItem("kareem_camp_families_v5", encryptData(families));
     notifyDemoSubscribers();
   } else {
     const docRef = doc(db, "families", id);

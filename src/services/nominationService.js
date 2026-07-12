@@ -10,10 +10,11 @@ import {
   orderBy 
 } from "firebase/firestore";
 import defaultNominations from "./nominationsDefault.json";
+import { encryptData, decryptData } from "../utils/security";
 
 const initLocalStorage = () => {
-  if (!localStorage.getItem("kareem_camp_nominations_v2")) {
-    localStorage.setItem("kareem_camp_nominations_v2", JSON.stringify(defaultNominations));
+  if (!localStorage.getItem("kareem_camp_nominations_v3")) {
+    localStorage.setItem("kareem_camp_nominations_v3", encryptData(defaultNominations));
   }
 };
 
@@ -26,9 +27,11 @@ const notifyDemoSubscribers = () => {
 
 const getDemoNominations = () => {
   initLocalStorage();
-  const data = JSON.parse(localStorage.getItem("kareem_camp_nominations_v2") || "[]");
+  const ciphertext = localStorage.getItem("kareem_camp_nominations_v3");
+  const data = ciphertext ? decryptData(ciphertext) : null;
+  const nominations = data || [];
   // Sort by serialNo
-  return data.sort((a, b) => (a.serialNo || 0) - (b.serialNo || 0));
+  return nominations.sort((a, b) => (a.serialNo || 0) - (b.serialNo || 0));
 };
 
 /**
@@ -127,7 +130,7 @@ export const addNomination = async (nomData) => {
     const maxSerial = nominations.reduce((max, n) => Math.max(max, n.serialNo || 0), 0);
     const serialNo = maxSerial + 1;
     nominations.push({ id, serialNo, ...newNom });
-    localStorage.setItem("kareem_camp_nominations_v2", JSON.stringify(nominations));
+    localStorage.setItem("kareem_camp_nominations_v3", encryptData(nominations));
     notifyDemoSubscribers();
     return id;
   } else {
@@ -204,7 +207,7 @@ export const updateNomination = async (id, nomData) => {
     const index = nominations.findIndex(n => n.id === id);
     if (index !== -1) {
       nominations[index] = { ...nominations[index], ...updatedNom };
-      localStorage.setItem("kareem_camp_nominations_v2", JSON.stringify(nominations));
+      localStorage.setItem("kareem_camp_nominations_v3", encryptData(nominations));
       notifyDemoSubscribers();
     }
   } else {
@@ -220,7 +223,7 @@ export const deleteNomination = async (id) => {
   if (isDemoMode) {
     let nominations = getDemoNominations();
     nominations = nominations.filter(n => n.id !== id);
-    localStorage.setItem("kareem_camp_nominations_v2", JSON.stringify(nominations));
+    localStorage.setItem("kareem_camp_nominations_v3", encryptData(nominations));
     notifyDemoSubscribers();
   } else {
     const docRef = doc(db, "nominations", id);
