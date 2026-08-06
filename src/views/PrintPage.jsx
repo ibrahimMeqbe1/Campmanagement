@@ -31,10 +31,10 @@ const PrintPage = () => {
     }
     setType(printType);
     
-    // تشغيل نافذة الطباعة تلقائياً بعد رندر الصفحة بـ 800 مللي ثانية
+    // تشغيل نافذة الطباعة تلقائياً بعد رندر بيانات الصفحة بالكامل للجوال والكمبيوتر
     const timer = setTimeout(() => {
       window.print();
-    }, 800);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -154,7 +154,7 @@ const PrintPage = () => {
       <style>{`
         @media print {
           @page {
-            size: landscape !important;
+            size: A4 landscape !important;
             margin: 3mm 4mm !important;
           }
           @page :left {
@@ -168,9 +168,10 @@ const PrintPage = () => {
             height: auto !important;
             margin: 0 !important;
             padding: 0 !important;
-            background-color: white !important;
+            background-color: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            font-family: 'Tajawal', 'Cairo', sans-serif !important;
           }
           .no-print {
             display: none !important;
@@ -196,18 +197,20 @@ const PrintPage = () => {
             page-break-after: auto;
           }
           table.print-table th, table.print-table td {
-            line-height: 1.35 !important;
+            line-height: 1.4 !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
-            border: 1px solid #1e293b !important;
+            border: 1.5px solid #0f172a !important;
             color: #000000 !important;
-            font-size: 8pt !important;
+            font-size: 8.5pt !important;
+            font-weight: 700 !important;
+            padding: 4px 2px !important;
           }
           table.print-table th {
-            font-weight: 800 !important;
+            font-weight: 900 !important;
             background-color: #0f5132 !important;
             color: #ffffff !important;
-            font-size: 8.5pt !important;
+            font-size: 9pt !important;
           }
         }
 
