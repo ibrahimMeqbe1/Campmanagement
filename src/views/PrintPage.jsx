@@ -150,12 +150,18 @@ const PrintPage = () => {
 
   return (
     <div className="print-page-layout" dir="rtl" style={{ padding: "20px", backgroundColor: "white", minHeight: "100vh" }}>
-      {/* تنسيقات الطباعة الفائقة الوضوح للهواتف والكمبيوتر */}
+      {/* تنسيقات الطباعة الفائقة الوضوح للهواتف والكمبيوتر بالاتجاه الأفقي */}
       <style>{`
         @media print {
           @page {
-            size: ${type === "nominations" ? "A4 landscape" : "A4 portrait"} !important;
-            margin: 4mm 5mm !important;
+            size: landscape !important;
+            margin: 3mm 4mm !important;
+          }
+          @page :left {
+            size: landscape !important;
+          }
+          @page :right {
+            size: landscape !important;
           }
           html, body {
             width: 100% !important;
@@ -190,16 +196,18 @@ const PrintPage = () => {
             page-break-after: auto;
           }
           table.print-table th, table.print-table td {
-            line-height: 1.3 !important;
+            line-height: 1.35 !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
-            border: 1px solid #334155 !important;
+            border: 1px solid #1e293b !important;
             color: #000000 !important;
+            font-size: 8pt !important;
           }
           table.print-table th {
             font-weight: 800 !important;
             background-color: #0f5132 !important;
             color: #ffffff !important;
+            font-size: 8.5pt !important;
           }
         }
 
