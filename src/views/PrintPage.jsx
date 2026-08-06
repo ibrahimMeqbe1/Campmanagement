@@ -150,17 +150,21 @@ const PrintPage = () => {
 
   return (
     <div className="print-page-layout" dir="rtl" style={{ padding: "20px", backgroundColor: "white", minHeight: "100vh" }}>
-      {/* تنسيقات الطباعة الخاصة برأس الصفحة واتجاه الصفحات */}
+      {/* تنسيقات الطباعة الفائقة الوضوح للهواتف والكمبيوتر */}
       <style>{`
         @media print {
           @page {
-            size: ${type === "nominations" ? "A4 landscape" : "A4 portrait"};
-            margin: 6mm 8mm;
+            size: ${type === "nominations" ? "A4 landscape" : "A4 portrait"} !important;
+            margin: 4mm 5mm !important;
           }
-          body {
+          html, body {
+            width: 100% !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background-color: white !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            background-color: white !important;
           }
           .no-print {
             display: none !important;
@@ -169,10 +173,16 @@ const PrintPage = () => {
             padding: 0 !important;
             margin: 0 !important;
             width: 100% !important;
+            box-shadow: none !important;
+          }
+          .print-table-wrapper {
+            overflow: visible !important;
+            width: 100% !important;
           }
           table.print-table {
             width: 100% !important;
             border-collapse: collapse !important;
+            table-layout: fixed !important;
             page-break-inside: auto;
           }
           table.print-table tr {
@@ -180,27 +190,74 @@ const PrintPage = () => {
             page-break-after: auto;
           }
           table.print-table th, table.print-table td {
-            line-height: 1.35 !important;
+            line-height: 1.3 !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
+            border: 1px solid #334155 !important;
+            color: #000000 !important;
+          }
+          table.print-table th {
+            font-weight: 800 !important;
+            background-color: #0f5132 !important;
+            color: #ffffff !important;
+          }
+        }
+
+        /* تحسينات العرض على شاشات الموبايل قبل الطباعة */
+        @media screen and (max-width: 768px) {
+          .print-page-layout {
+            padding: 10px !important;
+          }
+          .header {
+            flex-direction: column !important;
+            text-align: center !important;
+            gap: 10px !important;
+          }
+          .meta-info {
+            text-align: center !important;
+          }
+          .print-table-wrapper {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            margin-bottom: 15px;
+          }
+          table.print-table {
+            min-width: 900px !important;
           }
         }
       `}</style>
 
-      {/* زر بدء الطباعة اليدوي (يظهر على الشاشة فقط ويختفي عند الطباعة) */}
-      <div className="print-btn-container no-print" style={{ position: "fixed", bottom: "20px", left: "20px", zIndex: 9999 }}>
+      {/* تنبيه وشريط زر الطباعة للهواتف المحمولة */}
+      <div className="no-print" style={{ 
+        background: "linear-gradient(135deg, #0f5132 0%, #064e3b 100%)", 
+        color: "#ffffff", 
+        padding: "12px 18px", 
+        borderRadius: "14px", 
+        marginBottom: "20px", 
+        display: "flex", 
+        alignItems: "center", 
+        justify-content: "space-between", 
+        flexWrap: "wrap", 
+        gap: "10px",
+        boxShadow: "0 4px 15px rgba(15, 81, 50, 0.25)"
+      }}>
+        <div style={{ fontSize: "0.88rem", fontWeight: "700" }}>
+          💡 <span style={{ color: "#fef08a" }}>تلميح للطباعة من الجوال:</span> يرجى التأكد من تفعيل وضع <strong>"أفقي (Landscape)"</strong> في خيارات حفظ الـ PDF من هاتفك للحصول على أفضل قراءة احترافية لكافة الأعمدة.
+        </div>
         <button 
           onClick={() => window.print()}
           style={{
-            backgroundColor: "#0f5132",
-            color: "white",
+            backgroundColor: "#f59e0b",
+            color: "#0f172a",
             border: "none",
-            padding: "12px 24px",
-            fontSize: "12pt",
-            fontWeight: "bold",
+            padding: "10px 20px",
+            fontSize: "0.95rem",
+            fontWeight: "900",
             borderRadius: "50px",
             cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.25)"
+            boxShadow: "0 4px 10px rgba(0,0,0,0.2)"
           }}
         >
           🖨️ بدء الطباعة / حفظ PDF
@@ -275,8 +332,9 @@ const PrintPage = () => {
       </div>
 
       {/* جدول البيانات العريض المسطح */}
-      {type === "nominations" ? (
-        <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", marginBottom: "30px", direction: "rtl", tableLayout: "fixed" }}>
+      <div className="print-table-wrapper">
+        {type === "nominations" ? (
+          <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", marginBottom: "30px", direction: "rtl", tableLayout: "fixed" }}>
           <thead>
             {/* الصف الأول من الهيدر */}
             <tr style={{ backgroundColor: "#0f5132", color: "white" }}>
@@ -443,6 +501,7 @@ const PrintPage = () => {
           </tbody>
         </table>
       )}
+      </div>
 
       {/* التوقيع والختم */}
       <div className="footer" style={{ marginTop: "50px", display: "flex", justifyContent: "space-between", fontSize: "10pt" }}>
