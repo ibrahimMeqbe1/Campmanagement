@@ -25,3 +25,7 @@ yarn-error.log*
 # environment variables & archives
 .env
 *.zip
+
+# Next.js build output
+.next/
+scratch/

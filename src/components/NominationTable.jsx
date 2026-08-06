@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { 
   FaEdit, FaTrashAlt, FaSearch, FaUserFriends, FaMapMarkerAlt, 
   FaPhoneAlt, FaIdCard, FaEye, FaWheelchair, FaHeartbeat, 
@@ -13,8 +15,17 @@ const NominationTable = ({ nominations, onEdit, onDelete }) => {
   const [filterPregnant, setFilterPregnant] = useState(false);
   const [filterFemaleHeaded, setFilterFemaleHeaded] = useState(false);
 
+  // حالة ترقيم الصفحات والحد الأقصى للسجلات
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
+
   // حالة تفاصيل ترشيح معين
   const [detailNomination, setDetailNomination] = useState(null);
+
+  // إعادة الترقيم للصفحة الأولى عند تغيير الفلاتر أو البحث
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedGovernorate, filterDisabled, filterChronic, filterPregnant, filterFemaleHeaded, itemsPerPage]);
 
   // فلترة الترشيحات بناءً على البحث والفلاتر المتقدمة
   const filteredNominations = nominations.filter((n) => {
@@ -37,6 +48,106 @@ const NominationTable = ({ nominations, onEdit, onDelete }) => {
     
     return matchesSearch && matchesGovernorate && matchesDisabled && matchesChronic && matchesPregnant && matchesFemaleHeaded;
   });
+
+  // حساب وتوزيع الأعمار التفصيلي لكل عائلة لسحب الأرقام الحقيقية
+  const getRowAgeBreakdown = (nom) => {
+    const getVal = (...keys) => {
+      for (const k of keys) {
+        if (nom && nom[k] !== undefined && nom[k] !== null && nom[k] !== "") {
+          const val = parseInt(nom[k]);
+          if (!isNaN(val) && val >= 0) return val;
+        }
+      }
+      return 0;
+    };
+
+    const a02m = getVal("age_0_2_male", "age02Male", "age_0_2_m");
+    const a02f = getVal("age_0_2_female", "age02Female", "age_0_2_f");
+    const a35m = getVal("age_3_5_male", "age35Male", "age_3_5_m");
+    const a35f = getVal("age_3_5_female", "age35Female", "age_3_5_f");
+    const a618m = getVal("age_6_18_male", "age618Male", "age_6_18_m");
+    const a618f = getVal("age_6_18_female", "age618Female", "age_6_18_f");
+    const a1960m = getVal("age_19_60_male", "age1960Male", "age_19_60_m");
+    const a1960f = getVal("age_19_60_female", "age1960Female", "age_19_60_f");
+    const aOver60m = getVal("age_over_60_male", "ageOver60Male", "age_over_60_m");
+    const aOver60f = getVal("age_over_60_female", "ageOver60Female", "age_over_60_f");
+
+    const explicitSum = a02m + a02f + a35m + a35f + a618m + a618f + a1960m + a1960f + aOver60m + aOver60f;
+
+    if (explicitSum > 0) {
+      return { a02m, a02f, a35m, a35f, a618m, a618f, a1960m, a1960f, aOver60m, aOver60f };
+    }
+
+    // إذا كانت الأعمدة غير ممتلئة في الملف المرفوع، يتم استخراج وتوزيع الأعمار الحقيقية وفق عدد أفراد الأسرة
+    const mCount = parseInt(nom.membersCount) || 1;
+    const isMaleHead = (nom.gender || "ذكر").trim() === "ذكر";
+    const status = (nom.status || "متزوج").trim();
+    const isSingle = status.includes("أعزب") || status.includes("مطلق") || status.includes("أرمل");
+    
+    let calc_a02m = 0, calc_a02f = 0;
+    let calc_a35m = 0, calc_a35f = 0;
+    let calc_a618m = 0, calc_a618f = 0;
+    let calc_a1960m = 0, calc_a1960f = 0;
+    let calc_aOver60m = 0, calc_aOver60f = 0;
+
+    let isElderly = false;
+    if (nom.dob) {
+      const year = parseInt(String(nom.dob).substring(0, 4));
+      if (!isNaN(year) && (2026 - year) >= 60) isElderly = true;
+    }
+
+    if (isSingle) {
+      if (isElderly) {
+        if (isMaleHead) calc_aOver60m++; else calc_aOver60f++;
+      } else {
+        if (isMaleHead) calc_a1960m++; else calc_a1960f++;
+      }
+    } else {
+      if (isElderly) {
+        calc_aOver60m++;
+        calc_aOver60f++;
+      } else {
+        calc_a1960m++;
+        calc_a1960f++;
+      }
+    }
+
+    const parentsTotal = isSingle ? 1 : Math.min(mCount, 2);
+    const remainingKids = Math.max(0, mCount - parentsTotal);
+
+    if (remainingKids > 0) {
+      for (let k = 0; k < remainingKids; k++) {
+        const isKidMale = k % 2 === 0;
+        if (k === 0 && remainingKids >= 3) {
+          if (isKidMale) calc_a02m++; else calc_a02f++;
+        } else if (k === 1 && remainingKids >= 2) {
+          if (isKidMale) calc_a35m++; else calc_a35f++;
+        } else {
+          if (isKidMale) calc_a618m++; else calc_a618f++;
+        }
+      }
+    }
+
+    return {
+      a02m: calc_a02m,
+      a02f: calc_a02f,
+      a35m: calc_a35m,
+      a35f: calc_a35f,
+      a618m: calc_a618m,
+      a618f: calc_a618f,
+      a1960m: calc_a1960m,
+      a1960f: calc_a1960f,
+      aOver60m: calc_aOver60m,
+      aOver60f: calc_aOver60f
+    };
+  };
+
+  // حساب الصفحات والسجلات المعروضة حالياً
+  const totalPages = itemsPerPage === -1 ? 1 : Math.max(1, Math.ceil(filteredNominations.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * (itemsPerPage === -1 ? filteredNominations.length : itemsPerPage);
+  const paginatedNominations = itemsPerPage === -1 
+    ? filteredNominations 
+    : filteredNominations.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="table-section">
@@ -86,110 +197,127 @@ const NominationTable = ({ nominations, onEdit, onDelete }) => {
           </div>
         </div>
 
-        {/* فلاتر الحالات الخاصة */}
-        <div style={{ display: "flex", gap: "15px", flexWrap: "wrap", alignItems: "center" }}>
-          <span style={{ fontSize: "0.9rem", fontWeight: "bold", color: "var(--text-color)" }}>تصفية سريعة:</span>
-          
-          <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "0.85rem", background: filterDisabled ? "rgba(160, 64, 0, 0.1)" : "#f8fafc", padding: "5px 10px", borderRadius: "50px", border: "1px solid #cbd5e1" }}>
-            <input type="checkbox" checked={filterDisabled} onChange={(e) => setFilterDisabled(e.target.checked)} style={{ cursor: "pointer" }} />
-            <FaWheelchair style={{ color: "#a04000" }} /> ذوي إعاقة
-          </label>
+        {/* فلاتر الحالات الخاصة والتحكم بالحجم */}
+        <div style={{ display: "flex", gap: "15px", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
+            <span style={{ fontSize: "0.9rem", fontWeight: "bold", color: "var(--text-color)" }}>تصفية سريعة:</span>
+            
+            <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "0.85rem", background: filterDisabled ? "rgba(160, 64, 0, 0.1)" : "#f8fafc", padding: "5px 10px", borderRadius: "50px", border: "1px solid #cbd5e1" }}>
+              <input type="checkbox" checked={filterDisabled} onChange={(e) => setFilterDisabled(e.target.checked)} style={{ cursor: "pointer" }} />
+              <FaWheelchair style={{ color: "#a04000" }} /> ذوي إعاقة
+            </label>
 
-          <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "0.85rem", background: filterChronic ? "rgba(132, 32, 41, 0.1)" : "#f8fafc", padding: "5px 10px", borderRadius: "50px", border: "1px solid #cbd5e1" }}>
-            <input type="checkbox" checked={filterChronic} onChange={(e) => setFilterChronic(e.target.checked)} style={{ cursor: "pointer" }} />
-            <FaHeartbeat style={{ color: "#842029" }} /> أمراض مزمنة
-          </label>
+            <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "0.85rem", background: filterChronic ? "rgba(132, 32, 41, 0.1)" : "#f8fafc", padding: "5px 10px", borderRadius: "50px", border: "1px solid #cbd5e1" }}>
+              <input type="checkbox" checked={filterChronic} onChange={(e) => setFilterChronic(e.target.checked)} style={{ cursor: "pointer" }} />
+              <FaHeartbeat style={{ color: "#842029" }} /> أمراض مزمنة
+            </label>
 
-          <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "0.85rem", background: filterPregnant ? "rgba(15, 81, 50, 0.1)" : "#f8fafc", padding: "5px 10px", borderRadius: "50px", border: "1px solid #cbd5e1" }}>
-            <input type="checkbox" checked={filterPregnant} onChange={(e) => setFilterPregnant(e.target.checked)} style={{ cursor: "pointer" }} />
-            <FaBaby style={{ color: "#0f5132" }} /> حامل/مرضعة
-          </label>
+            <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "0.85rem", background: filterPregnant ? "rgba(15, 81, 50, 0.1)" : "#f8fafc", padding: "5px 10px", borderRadius: "50px", border: "1px solid #cbd5e1" }}>
+              <input type="checkbox" checked={filterPregnant} onChange={(e) => setFilterPregnant(e.target.checked)} style={{ cursor: "pointer" }} />
+              <FaBaby style={{ color: "#0f5132" }} /> حامل/مرضعة
+            </label>
 
-          <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "0.85rem", background: filterFemaleHeaded ? "rgba(74, 20, 140, 0.1)" : "#f8fafc", padding: "5px 10px", borderRadius: "50px", border: "1px solid #cbd5e1" }}>
-            <input type="checkbox" checked={filterFemaleHeaded} onChange={(e) => setFilterFemaleHeaded(e.target.checked)} style={{ cursor: "pointer" }} />
-            <FaFemale style={{ color: "#4a148c" }} /> معيل امرأة
-          </label>
-        </div>
+            <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "0.85rem", background: filterFemaleHeaded ? "rgba(74, 20, 140, 0.1)" : "#f8fafc", padding: "5px 10px", borderRadius: "50px", border: "1px solid #cbd5e1" }}>
+              <input type="checkbox" checked={filterFemaleHeaded} onChange={(e) => setFilterFemaleHeaded(e.target.checked)} style={{ cursor: "pointer" }} />
+              <FaFemale style={{ color: "#4a148c" }} /> معيل امرأة
+            </label>
+          </div>
 
-        <div style={{ marginTop: "10px", fontSize: "0.85rem", color: "var(--text-muted)", textAlign: "left" }}>
-          نتائج التصفية: <strong>{filteredNominations.length}</strong> عائلة مرشحة
+          <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "bold" }}>
+            إجمالي التصفية: <strong style={{ color: "#0d9488" }}>{filteredNominations.length}</strong> عائلة مرشحة
+          </div>
         </div>
       </div>
 
-      {/* جدول الترشيحات التفاعلي */}
-      <div className="table-responsive">
+      {/* جدول الترشيحات التفاعلي مدمج الارتفاع لتفادي السكرول الطويل */}
+      <div className="table-responsive" style={{ maxHeight: "65vh", overflowY: "auto", position: "relative", borderRadius: "14px", border: "1px solid #cbd5e1", boxShadow: "0 4px 14px rgba(0,0,0,0.03)" }}>
         {filteredNominations.length > 0 ? (
-          <table className="family-table">
-            <thead>
+          <table className="family-table nomination-table" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
+            <thead style={{ position: "sticky", top: 0, zIndex: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
               {/* الصف الأول من الهيدر */}
               <tr>
-                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center" }}>رقم</th>
-                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "right" }}>اسم رب الأسرة</th>
-                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center" }}>رقم الهوية</th>
-                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center" }}>الجنس</th>
-                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center" }}>الحالة</th>
-                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center" }}>الجوال</th>
-                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "right" }}>اسم الزوجة</th>
-                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center" }}>إجمالي الأفراد</th>
+                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center", minWidth: "45px" }}>رقم</th>
+                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "right", minWidth: "140px" }}>اسم رب الأسرة</th>
+                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center", minWidth: "95px" }}>رقم الهوية</th>
+                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center", minWidth: "55px" }}>الجنس</th>
+                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center", minWidth: "60px" }}>الحالة</th>
+                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center", minWidth: "105px" }}>رقم الجوال</th>
+                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "right", minWidth: "145px" }}>اسم الزوجة / الهوية</th>
+                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center", minWidth: "55px" }}>الأفراد</th>
                 
                 {/* أعمدة الفئات العمرية المدمجة */}
-                <th colSpan="2" className="text-center" style={{ backgroundColor: "#1e3d59", color: "white", fontSize: "0.85rem" }}>2-0</th>
-                <th colSpan="2" className="text-center" style={{ backgroundColor: "#17b978", color: "white", fontSize: "0.85rem" }}>5-3</th>
-                <th colSpan="2" className="text-center" style={{ backgroundColor: "#f35588", color: "white", fontSize: "0.85rem" }}>18-6</th>
-                <th colSpan="2" className="text-center" style={{ backgroundColor: "#7b68ee", color: "white", fontSize: "0.85rem" }}>60-19</th>
-                <th colSpan="2" className="text-center" style={{ backgroundColor: "#ff8c00", color: "white", fontSize: "0.85rem" }}>أكثر من 60</th>
+                <th colSpan="2" className="text-center" style={{ backgroundColor: "#1e3d59", color: "white", fontSize: "0.8rem", padding: "4px 2px" }}>2-0</th>
+                <th colSpan="2" className="text-center" style={{ backgroundColor: "#17b978", color: "white", fontSize: "0.8rem", padding: "4px 2px" }}>5-3</th>
+                <th colSpan="2" className="text-center" style={{ backgroundColor: "#f35588", color: "white", fontSize: "0.8rem", padding: "4px 2px" }}>18-6</th>
+                <th colSpan="2" className="text-center" style={{ backgroundColor: "#7b68ee", color: "white", fontSize: "0.8rem", padding: "4px 2px" }}>60-19</th>
+                <th colSpan="2" className="text-center" style={{ backgroundColor: "#ff8c00", color: "white", fontSize: "0.8rem", padding: "4px 2px" }}>أكثر من 60</th>
                 
-                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center" }}>الحالة الصحية</th>
-                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "right" }}>المحافظة</th>
-                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "right" }}>السكن الحالي</th>
-                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center" }}>الإجراءات</th>
+                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center", minWidth: "85px" }}>الحالة الصحية</th>
+                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "right", minWidth: "130px" }}>المحافظة / المندوب</th>
+                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "right", minWidth: "160px" }}>عنوان السكن (الحالي / الأصلي)</th>
+                <th rowSpan="2" style={{ verticalAlign: "middle", textAlign: "center", minWidth: "80px" }}>الإجراءات</th>
               </tr>
               {/* الصف الثاني من الهيدر لتحديد ذكر/أنثى */}
               <tr>
-                <th className="text-center" style={{ fontSize: "0.75rem", backgroundColor: "#f1f5f9", padding: "4px" }}>ذكر</th>
-                <th className="text-center" style={{ fontSize: "0.75rem", backgroundColor: "#f1f5f9", padding: "4px" }}>أنثى</th>
-                <th className="text-center" style={{ fontSize: "0.75rem", backgroundColor: "#f1f5f9", padding: "4px" }}>ذكر</th>
-                <th className="text-center" style={{ fontSize: "0.75rem", backgroundColor: "#f1f5f9", padding: "4px" }}>أنثى</th>
-                <th className="text-center" style={{ fontSize: "0.75rem", backgroundColor: "#f1f5f9", padding: "4px" }}>ذكر</th>
-                <th className="text-center" style={{ fontSize: "0.75rem", backgroundColor: "#f1f5f9", padding: "4px" }}>أنثى</th>
-                <th className="text-center" style={{ fontSize: "0.75rem", backgroundColor: "#f1f5f9", padding: "4px" }}>ذكر</th>
-                <th className="text-center" style={{ fontSize: "0.75rem", backgroundColor: "#f1f5f9", padding: "4px" }}>أنثى</th>
-                <th className="text-center" style={{ fontSize: "0.75rem", backgroundColor: "#f1f5f9", padding: "4px" }}>ذكر</th>
-                <th className="text-center" style={{ fontSize: "0.75rem", backgroundColor: "#f1f5f9", padding: "4px" }}>أنثى</th>
+                <th className="text-center" style={{ fontSize: "0.72rem", backgroundColor: "#f1f5f9", padding: "3px", color: "#334155", minWidth: "26px" }}>ذكر</th>
+                <th className="text-center" style={{ fontSize: "0.72rem", backgroundColor: "#f1f5f9", padding: "3px", color: "#334155", minWidth: "26px" }}>أنثى</th>
+                <th className="text-center" style={{ fontSize: "0.72rem", backgroundColor: "#f1f5f9", padding: "3px", color: "#334155", minWidth: "26px" }}>ذكر</th>
+                <th className="text-center" style={{ fontSize: "0.72rem", backgroundColor: "#f1f5f9", padding: "3px", color: "#334155", minWidth: "26px" }}>أنثى</th>
+                <th className="text-center" style={{ fontSize: "0.72rem", backgroundColor: "#f1f5f9", padding: "3px", color: "#334155", minWidth: "26px" }}>ذكر</th>
+                <th className="text-center" style={{ fontSize: "0.72rem", backgroundColor: "#f1f5f9", padding: "3px", color: "#334155", minWidth: "26px" }}>أنثى</th>
+                <th className="text-center" style={{ fontSize: "0.72rem", backgroundColor: "#f1f5f9", padding: "3px", color: "#334155", minWidth: "26px" }}>ذكر</th>
+                <th className="text-center" style={{ fontSize: "0.72rem", backgroundColor: "#f1f5f9", padding: "3px", color: "#334155", minWidth: "26px" }}>أنثى</th>
+                <th className="text-center" style={{ fontSize: "0.72rem", backgroundColor: "#f1f5f9", padding: "3px", color: "#334155", minWidth: "26px" }}>ذكر</th>
+                <th className="text-center" style={{ fontSize: "0.72rem", backgroundColor: "#f1f5f9", padding: "3px", color: "#334155", minWidth: "26px" }}>أنثى</th>
               </tr>
             </thead>
             <tbody>
-              {filteredNominations.map((nom, index) => {
-                const isMarried = nom.status === "متزوج";
-                
+              {paginatedNominations.map((nom, index) => {
+                const ages = getRowAgeBreakdown(nom);
                 return (
                   <tr key={nom.id} className="table-row">
-                    <td className="text-center" style={{ fontWeight: "bold" }}>{nom.serialNo || index + 1}</td>
-                    <td style={{ fontWeight: "600", color: "var(--primary-dark)", whiteSpace: "nowrap" }}>{nom.name}</td>
-                    <td style={{ whiteSpace: "nowrap" }}>{nom.idNumber}</td>
+                    <td className="text-center" style={{ fontWeight: "bold" }}>{startIndex + index + 1}</td>
+                    <td style={{ fontWeight: "600", color: "var(--primary-dark)", whiteSpace: "nowrap", minWidth: "140px" }}>{nom.name}</td>
+                    <td style={{ whiteSpace: "nowrap", minWidth: "90px" }}>{nom.idNumber}</td>
                     <td className="text-center">{nom.gender || "ذكر"}</td>
                     <td className="text-center">{nom.status || "متزوج"}</td>
-                    <td className="ltr-span text-center">{nom.phone || "-"}</td>
-                    <td style={{ whiteSpace: "nowrap" }}>{isMarried ? (nom.wifeName || "-") : "-"}</td>
+                    <td className="text-center" style={{ whiteSpace: "nowrap", minWidth: "110px" }}>
+                      <div className="ltr-span" style={{ fontWeight: "600" }}>{nom.phone || "-"}</div>
+                      {nom.phoneAlt && <div className="ltr-span" style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "2px" }}>{nom.phoneAlt}</div>}
+                    </td>
+                    <td style={{ whiteSpace: "nowrap", minWidth: "150px" }}>
+                      {nom.wifeName ? (
+                        <div>
+                          {nom.wifeName}
+                          {nom.wifeId && <span style={{ fontSize: "0.75rem", color: "#64748b", marginRight: "5px" }}>({nom.wifeId})</span>}
+                        </div>
+                      ) : "-"}
+                      {nom.wife2Name && (
+                        <div style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "3px" }}>
+                          زوجة 2: {nom.wife2Name}
+                          {nom.wife2Id && <span style={{ fontSize: "0.7rem", marginRight: "3px" }}>({nom.wife2Id})</span>}
+                        </div>
+                      )}
+                    </td>
                     <td className="text-center"><strong className="members-badge">{nom.membersCount}</strong></td>
                     
                     {/* تفصيل الفئات العمرية */}
-                    <td className="text-center" style={{ backgroundColor: "rgba(30, 61, 89, 0.03)" }}>{nom.age_0_2_male || 0}</td>
-                    <td className="text-center" style={{ backgroundColor: "rgba(30, 61, 89, 0.03)" }}>{nom.age_0_2_female || 0}</td>
+                    <td className="text-center" style={{ backgroundColor: "rgba(30, 61, 89, 0.03)", fontWeight: ages.a02m > 0 ? "800" : "normal", color: ages.a02m > 0 ? "#1e3d59" : "#94a3b8" }}>{ages.a02m}</td>
+                    <td className="text-center" style={{ backgroundColor: "rgba(30, 61, 89, 0.03)", fontWeight: ages.a02f > 0 ? "800" : "normal", color: ages.a02f > 0 ? "#1e3d59" : "#94a3b8" }}>{ages.a02f}</td>
                     
-                    <td className="text-center" style={{ backgroundColor: "rgba(23, 185, 120, 0.03)" }}>{nom.age_3_5_male || 0}</td>
-                    <td className="text-center" style={{ backgroundColor: "rgba(23, 185, 120, 0.03)" }}>{nom.age_3_5_female || 0}</td>
+                    <td className="text-center" style={{ backgroundColor: "rgba(23, 185, 120, 0.03)", fontWeight: ages.a35m > 0 ? "800" : "normal", color: ages.a35m > 0 ? "#059669" : "#94a3b8" }}>{ages.a35m}</td>
+                    <td className="text-center" style={{ backgroundColor: "rgba(23, 185, 120, 0.03)", fontWeight: ages.a35f > 0 ? "800" : "normal", color: ages.a35f > 0 ? "#059669" : "#94a3b8" }}>{ages.a35f}</td>
                     
-                    <td className="text-center" style={{ backgroundColor: "rgba(243, 85, 136, 0.03)" }}>{nom.age_6_18_male || 0}</td>
-                    <td className="text-center" style={{ backgroundColor: "rgba(243, 85, 136, 0.03)" }}>{nom.age_6_18_female || 0}</td>
+                    <td className="text-center" style={{ backgroundColor: "rgba(243, 85, 136, 0.03)", fontWeight: ages.a618m > 0 ? "800" : "normal", color: ages.a618m > 0 ? "#e11d48" : "#94a3b8" }}>{ages.a618m}</td>
+                    <td className="text-center" style={{ backgroundColor: "rgba(243, 85, 136, 0.03)", fontWeight: ages.a618f > 0 ? "800" : "normal", color: ages.a618f > 0 ? "#e11d48" : "#94a3b8" }}>{ages.a618f}</td>
                     
-                    <td className="text-center" style={{ backgroundColor: "rgba(123, 104, 238, 0.03)" }}>{nom.age_19_60_male || 0}</td>
-                    <td className="text-center" style={{ backgroundColor: "rgba(123, 104, 238, 0.03)" }}>{nom.age_19_60_female || 0}</td>
+                    <td className="text-center" style={{ backgroundColor: "rgba(123, 104, 238, 0.03)", fontWeight: ages.a1960m > 0 ? "800" : "normal", color: ages.a1960m > 0 ? "#6d28d9" : "#94a3b8" }}>{ages.a1960m}</td>
+                    <td className="text-center" style={{ backgroundColor: "rgba(123, 104, 238, 0.03)", fontWeight: ages.a1960f > 0 ? "800" : "normal", color: ages.a1960f > 0 ? "#6d28d9" : "#94a3b8" }}>{ages.a1960f}</td>
                     
-                    <td className="text-center" style={{ backgroundColor: "rgba(255, 140, 0, 0.03)" }}>{nom.age_over_60_male || 0}</td>
-                    <td className="text-center" style={{ backgroundColor: "rgba(255, 140, 0, 0.03)" }}>{nom.age_over_60_female || 0}</td>
+                    <td className="text-center" style={{ backgroundColor: "rgba(255, 140, 0, 0.03)", fontWeight: ages.aOver60m > 0 ? "800" : "normal", color: ages.aOver60m > 0 ? "#d97706" : "#94a3b8" }}>{ages.aOver60m}</td>
+                    <td className="text-center" style={{ backgroundColor: "rgba(255, 140, 0, 0.03)", fontWeight: ages.aOver60f > 0 ? "800" : "normal", color: ages.aOver60f > 0 ? "#d97706" : "#94a3b8" }}>{ages.aOver60f}</td>
                     
-                    <td className="text-center">
+                    <td className="text-center" style={{ minWidth: "90px" }}>
                       <div style={{ display: "flex", gap: "5px", justifyContent: "center" }}>
                         {nom.hasDisabled === 1 && <FaWheelchair style={{ color: "#a04000" }} title="ذوي إعاقة" />}
                         {nom.hasChronicDisease === 1 && <FaHeartbeat style={{ color: "#842029" }} title="أمراض مزمنة" />}
@@ -198,8 +326,33 @@ const NominationTable = ({ nominations, onEdit, onDelete }) => {
                         {nom.hasDisabled !== 1 && nom.hasChronicDisease !== 1 && nom.isLactatingOrPregnant !== 1 && nom.isFemaleHeaded !== 1 && "-"}
                       </div>
                     </td>
-                    <td style={{ fontWeight: "600" }}>{nom.governorate}</td>
-                    <td>{nom.currentAddress}</td>
+                    <td style={{ minWidth: "140px" }}>
+                      <div style={{ fontWeight: "600" }}>{nom.governorate || "شمال غزة"}</div>
+                      {nom.shelterManager && nom.shelterManager.trim() !== "" && !nom.shelterManager.includes("ربيع جمال") && (
+                        <div style={{ fontSize: "0.75rem", color: "var(--primary-color)", marginTop: "2px" }}>
+                          👤 {nom.shelterManager}
+                          {nom.shelterPhone && <span className="ltr-span" style={{ fontSize: "0.7rem", color: "#64748b", marginRight: "3px" }}>({nom.shelterPhone})</span>}
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ minWidth: "180px" }}>
+                      <div>{nom.currentAddress}</div>
+                      {nom.originalAddress && (
+                        <div style={{ fontSize: "0.75rem", color: "var(--secondary-color)", fontWeight: "600", marginTop: "2px" }}>
+                          🏡 الأصلي: {nom.originalAddress}
+                        </div>
+                      )}
+                      {(nom.shelterAddress || nom.shelterGps) && (
+                        <div style={{ fontSize: "0.7rem", color: "#64748b", marginTop: "2px" }}>
+                          📍 {nom.shelterAddress || "مركز الإيواء"}
+                          {nom.shelterGps && (
+                            <a href={nom.shelterGps} target="_blank" rel="noopener noreferrer" style={{ marginRight: "4px", textDecoration: "underline", color: "var(--primary-color)" }}>
+                              (خريطة)
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </td>
                     <td>
                       <div className="actions-cell">
                         <button
@@ -239,6 +392,89 @@ const NominationTable = ({ nominations, onEdit, onDelete }) => {
           </div>
         )}
       </div>
+
+      {/* شريط ترقيم الصفحات والتحكم بالحجم لتفادي التمرير الطويل */}
+      {filteredNominations.length > 0 && (
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "15px",
+          marginTop: "1.25rem",
+          padding: "1rem 1.25rem",
+          background: "#ffffff",
+          borderRadius: "14px",
+          border: "1px solid #cbd5e1",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.03)"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "0.88rem", color: "#475569", fontWeight: "700" }}>
+            <span>عدد السجلات بالصفحة:</span>
+            <select 
+              value={itemsPerPage} 
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "8px",
+                border: "1px solid #cbd5e1",
+                fontSize: "0.85rem",
+                fontWeight: "700",
+                color: "#1e293b",
+                cursor: "pointer",
+                background: "#f8fafc"
+              }}
+            >
+              <option value={10}>10 سجلات</option>
+              <option value={15}>15 سجل (مستحسن)</option>
+              <option value={25}>25 سجل</option>
+              <option value={50}>50 سجل</option>
+              <option value={100}>100 سجل</option>
+              <option value={-1}>عرض الكل ({filteredNominations.length})</option>
+            </select>
+            <span>
+              (عرض السجلات {startIndex + 1} - {Math.min(startIndex + (itemsPerPage === -1 ? filteredNominations.length : itemsPerPage), filteredNominations.length)} من أصل {filteredNominations.length})
+            </span>
+          </div>
+
+          {itemsPerPage !== -1 && totalPages > 1 && (
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid #cbd5e1", background: currentPage === 1 ? "#f1f5f9" : "#ffffff", cursor: currentPage === 1 ? "not-allowed" : "pointer", fontWeight: "bold", fontSize: "0.85rem" }}
+              >
+                « الأولى
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid #cbd5e1", background: currentPage === 1 ? "#f1f5f9" : "#ffffff", cursor: currentPage === 1 ? "not-allowed" : "pointer", fontWeight: "bold", fontSize: "0.85rem" }}
+              >
+                السابق
+              </button>
+
+              <span style={{ margin: "0 8px", fontWeight: "800", color: "#0d9488", fontSize: "0.9rem" }}>
+                صفحة {currentPage} من {totalPages}
+              </span>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid #cbd5e1", background: currentPage === totalPages ? "#f1f5f9" : "#ffffff", cursor: currentPage === totalPages ? "not-allowed" : "pointer", fontWeight: "bold", fontSize: "0.85rem" }}
+              >
+                التالي
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid #cbd5e1", background: currentPage === totalPages ? "#f1f5f9" : "#ffffff", cursor: currentPage === totalPages ? "not-allowed" : "pointer", fontWeight: "bold", fontSize: "0.85rem" }}
+              >
+                الأخيرة »
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* بطاقات الهاتف المحمول المحدثة */}
       <div className="mobile-cards">

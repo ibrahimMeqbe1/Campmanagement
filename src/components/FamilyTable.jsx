@@ -1,8 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrashAlt, FaSearch, FaUserFriends, FaMapMarkerAlt, FaPhoneAlt, FaIdCard } from "react-icons/fa";
 
 const FamilyTable = ({ families, onEdit, onDelete }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, itemsPerPage]);
 
   // فلترة العائلات بناءً على كلمة البحث (الاسم أو رقم الهاتف أو الهوية أو مكان السكن)
   const filteredFamilies = families.filter((family) => {
@@ -14,6 +20,12 @@ const FamilyTable = ({ families, onEdit, onDelete }) => {
       family.location.toLowerCase().includes(term)
     );
   });
+
+  const totalPages = itemsPerPage === -1 ? 1 : Math.max(1, Math.ceil(filteredFamilies.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * (itemsPerPage === -1 ? filteredFamilies.length : itemsPerPage);
+  const paginatedFamilies = itemsPerPage === -1 
+    ? filteredFamilies 
+    : filteredFamilies.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="table-section">
@@ -34,29 +46,29 @@ const FamilyTable = ({ families, onEdit, onDelete }) => {
         </div>
       </div>
 
-      {/* جدول العائلات التفاعلي */}
-      <div className="table-responsive">
+      {/* جدول العائلات التفاعلي مدمج الارتفاع لتفادي السكرول الطويل */}
+      <div className="table-responsive" style={{ maxHeight: "65vh", overflowY: "auto", position: "relative", borderRadius: "14px", border: "1px solid #cbd5e1", boxShadow: "0 4px 14px rgba(0,0,0,0.03)" }}>
         {filteredFamilies.length > 0 ? (
-          <table className="family-table">
-            <thead>
+          <table className="family-table" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
+            <thead style={{ position: "sticky", top: 0, zIndex: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
               <tr>
-                <th style={{ width: "2%" }}>رقم</th>
-                <th style={{ width: "13%" }}>اسم رب الأسرة</th>
-                <th style={{ width: "8%" }}>هوية رب الأسرة</th>
-                <th style={{ width: "8%" }}>تاريخ ميلاد رب الأسرة</th>
-                <th style={{ width: "6%" }} className="text-center">الحالة</th>
-                <th style={{ width: "13%" }}>اسم الزوجة</th>
-                <th style={{ width: "8%" }}>رقم هوية الزوجة</th>
-                <th style={{ width: "8%" }}>تاريخ ميلاد الزوجة</th>
-                <th style={{ width: "9%" }}>رقم الهاتف</th>
-                <th style={{ width: "4%" }} className="text-center">الأفراد</th>
-                <th style={{ width: "8%" }}>مكان السكن</th>
-                <th style={{ width: "13%" }}>ملاحظات</th>
-                <th style={{ width: "5%" }}>الإجراءات</th>
+                <th style={{ width: "3%", minWidth: "40px" }} className="text-center">رقم</th>
+                <th style={{ width: "15%", minWidth: "130px" }}>اسم رب الأسرة</th>
+                <th style={{ width: "9%", minWidth: "105px" }}>هوية رب الأسرة</th>
+                <th style={{ width: "8%", minWidth: "90px" }}>تاريخ ميلاد رب الأسرة</th>
+                <th style={{ width: "6%", minWidth: "65px" }} className="text-center">الحالة</th>
+                <th style={{ width: "13%", minWidth: "120px" }}>اسم الزوجة</th>
+                <th style={{ width: "8%", minWidth: "100px" }}>رقم هوية الزوجة</th>
+                <th style={{ width: "8%", minWidth: "90px" }}>تاريخ ميلاد الزوجة</th>
+                <th style={{ width: "9%", minWidth: "100px" }}>رقم الهاتف</th>
+                <th style={{ width: "4%", minWidth: "55px" }} className="text-center">الأفراد</th>
+                <th style={{ width: "8%", minWidth: "95px" }}>مكان السكن</th>
+                <th style={{ width: "9%", minWidth: "90px" }}>ملاحظات</th>
+                <th style={{ width: "5%", minWidth: "70px" }} className="text-center">الإجراءات</th>
               </tr>
             </thead>
             <tbody>
-              {filteredFamilies.map((family, index) => {
+              {paginatedFamilies.map((family, index) => {
                 const isMarried = family.status === "متزوج";
                 
                 // تحديد شارة الحالة الاجتماعية
@@ -69,7 +81,7 @@ const FamilyTable = ({ families, onEdit, onDelete }) => {
 
                 return (
                   <tr key={family.id} className="table-row">
-                    <td className="text-center" style={{ fontWeight: "bold" }}>{index + 1}</td>
+                    <td className="text-center" style={{ fontWeight: "bold" }}>{startIndex + index + 1}</td>
                     
                     {/* اسم رب الأسرة */}
                     <td style={{ fontWeight: "600", color: "var(--primary-dark)" }}>{family.name}</td>
@@ -178,6 +190,89 @@ const FamilyTable = ({ families, onEdit, onDelete }) => {
           </div>
         )}
       </div>
+
+      {/* شريط ترقيم الصفحات والتحكم بالحجم */}
+      {filteredFamilies.length > 0 && (
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "15px",
+          marginTop: "1.25rem",
+          padding: "1rem 1.25rem",
+          background: "#ffffff",
+          borderRadius: "14px",
+          border: "1px solid #cbd5e1",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.03)"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "0.88rem", color: "#475569", fontWeight: "700" }}>
+            <span>عدد السجلات بالصفحة:</span>
+            <select 
+              value={itemsPerPage} 
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "8px",
+                border: "1px solid #cbd5e1",
+                fontSize: "0.85rem",
+                fontWeight: "700",
+                color: "#1e293b",
+                cursor: "pointer",
+                background: "#f8fafc"
+              }}
+            >
+              <option value={10}>10 سجلات</option>
+              <option value={15}>15 سجل (مستحسن)</option>
+              <option value={25}>25 سجل</option>
+              <option value={50}>50 سجل</option>
+              <option value={100}>100 سجل</option>
+              <option value={-1}>عرض الكل ({filteredFamilies.length})</option>
+            </select>
+            <span>
+              (عرض السجلات {startIndex + 1} - {Math.min(startIndex + (itemsPerPage === -1 ? filteredFamilies.length : itemsPerPage), filteredFamilies.length)} من أصل {filteredFamilies.length})
+            </span>
+          </div>
+
+          {itemsPerPage !== -1 && totalPages > 1 && (
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid #cbd5e1", background: currentPage === 1 ? "#f1f5f9" : "#ffffff", cursor: currentPage === 1 ? "not-allowed" : "pointer", fontWeight: "bold", fontSize: "0.85rem" }}
+              >
+                « الأولى
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid #cbd5e1", background: currentPage === 1 ? "#f1f5f9" : "#ffffff", cursor: currentPage === 1 ? "not-allowed" : "pointer", fontWeight: "bold", fontSize: "0.85rem" }}
+              >
+                السابق
+              </button>
+
+              <span style={{ margin: "0 8px", fontWeight: "800", color: "#0d9488", fontSize: "0.9rem" }}>
+                صفحة {currentPage} من {totalPages}
+              </span>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid #cbd5e1", background: currentPage === totalPages ? "#f1f5f9" : "#ffffff", cursor: currentPage === totalPages ? "not-allowed" : "pointer", fontWeight: "bold", fontSize: "0.85rem" }}
+              >
+                التالي
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                style={{ padding: "6px 12px", borderRadius: "8px", border: "1px solid #cbd5e1", background: currentPage === totalPages ? "#f1f5f9" : "#ffffff", cursor: currentPage === totalPages ? "not-allowed" : "pointer", fontWeight: "bold", fontSize: "0.85rem" }}
+              >
+                الأخيرة »
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* بطاقات الهاتف المحمول المحدثة */}
       <div className="mobile-cards">

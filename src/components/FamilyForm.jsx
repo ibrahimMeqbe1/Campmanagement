@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { FaTimes, FaSave, FaUser, FaIdCard, FaPhone, FaUsers, FaMapMarkerAlt } from "react-icons/fa";
 

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { 
   FaTimes, FaSave, FaUser, FaIdCard, FaPhone, FaUsers, 
@@ -33,14 +35,15 @@ const NominationForm = ({ isOpen, onClose, onSave, nomination }) => {
     isLactatingOrPregnant: false,
     isFemaleHeaded: false,
     currentAddress: "",
+    currentAddress: "",
     originalAddress: "",
     governorate: "شمال غزة",
-    campName: "مخيم كريم",
-    shelterManager: "ربيع جمال جوده جودة",
-    shelterPhone: "0599099693",
+    campName: "نظام إدارة المخيمات",
+    shelterManager: "",
+    shelterPhone: "",
     shelterPhoneAlt: "",
-    shelterAddress: "جباليا البلد قرب رعاية جباليا الصحية",
-    shelterGps: "https://maps.app.goo.gl/X9KcSFDptXSPFdno8?g_st=a"
+    shelterAddress: "",
+    shelterGps: ""
   });
 
   const [errors, setErrors] = useState({});
@@ -113,12 +116,12 @@ const NominationForm = ({ isOpen, onClose, onSave, nomination }) => {
         currentAddress: "",
         originalAddress: "",
         governorate: "شمال غزة",
-        campName: "مخيم كريم",
-        shelterManager: "ربيع جمال جوده جودة",
-        shelterPhone: "0599099693",
+        campName: "نظام إدارة المخيمات",
+        shelterManager: "",
+        shelterPhone: "",
         shelterPhoneAlt: "",
-        shelterAddress: "جباليا البلد قرب رعاية جباليا الصحية",
-        shelterGps: "https://maps.app.goo.gl/X9KcSFDptXSPFdno8?g_st=a"
+        shelterAddress: "",
+        shelterGps: ""
       });
     }
     setErrors({});

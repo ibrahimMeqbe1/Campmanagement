@@ -1,111 +1,58 @@
-# 🏕️ نظام إدارة عائلات مخيم كريم (Kareem Camp Management System)
+# 🏕️ المنظومة الرقمية الشاملة لإدارة المخيمات والإغاثة | Multi-Camp Management System (Next.js 15 + Supabase)
 
-نظام ويب متكامل واحترافي تم تطويره باستخدام **React.js** وقاعدة بيانات **Google Firebase** لإدارة وتتبع بيانات العائلات النازحة داخل **مخيم كريم (حي القصاصيب - جباليا)**. يهدف النظام إلى تسهيل وتوزيع المساعدات والخدمات الإغاثية بكفاءة ودقة عالية من خلال واجهات تفاعلية تدعم الاستخدام على كافة الشاشات والهواتف الذكية.
+<p align="center">
+  <img src="public/logo.jpg" alt="Logo" width="120" style="border-radius: 50%;" />
+</p>
 
----
-
-## 🎨 الهوية البصرية والتصميم
-تم تصميم واجهات النظام لتكون ذات طابع رسمي وإنساني مميز:
-* **الألوان الرئيسية:** الأخضر الزيتي الداكن (الذي يرمز للعون والنماء والأمان) ممزوجاً باللمسات الذهبية الأنيقة (التي ترمز للأصالة والقيمة الإنسانية).
-* **تجربة المستخدم (UI/UX):** واجهات عريضة مدمجة وخالية من أشرطة التمرير الأفقية المزعجة، مع دعم الالتفاف التلقائي للنصوص لضمان قراءة كافة البيانات دفعة واحدة.
-* **التوافق التام:** متوافق بنسبة 100% مع الهواتف المحمولة والأجهزة اللوحية والحواسيب المكتبية.
+[العربية](#-باللغة-العربية) | [English](#-english)
 
 ---
 
-## ✨ المميزات الرئيسية للنظام
+## 🇸🇦 باللغة العربية
 
-### 1. 📊 لوحة التحكم والإحصائيات (Dashboard)
-* عرض إجمالي عدد العائلات المسجلة.
-* حساب إجمالي عدد الأفراد المستفيدين في المخيم تلقائياً.
-* حساب متوسط حجم الأسرة ومؤشرات السكن.
-* رسم بياني تفاعلي يوضح توزيع إيواء النازحين بين (خيام / كرفانات).
-* عرض سريع لآخر العائلات المسجلة بالمخيم.
+منظومة سحابية متكاملة وفائقة التطور تم تطويرها باستخدام **Next.js 15** وقاعدة بيانات **Supabase (PostgreSQL)** لإدارة وتتبع بيانات المخيمات، النازحين، كشوفات الترشيحات الإغاثية، والاشتراكات. توفر المنظومة لوحة تحكم تفاعلية متقدمة للمشرف العام (SuperAdmin) بالإضافة لمدراء المخيمات، مع أنظمة رسومات بيانية متحركة، تصدير واستيراد Excel/PDF، ودعم كامل للهواتف المحمولة والعمل بدون تعقيد.
 
-### 2. 🔍 محرك بحث وجدول ذكي (Families Management)
-* جدول بيانات مسطح يحتوي على **12 عموداً تفصيلياً**:
-  * رقم السجل، اسم رب الأسرة، رقم الهوية، تاريخ الميلاد، الحالة الاجتماعية.
-  * اسم الزوجة، رقم هوية الزوجة، تاريخ ميلاد الزوجة.
-  * رقم الهاتف، عدد أفراد الأسرة، مكان السكن، والملاحظات الإدارية.
-* فلترة وبحث فوري ذكي أثناء الكتابة حسب اسم رب الأسرة أو رقم هويته.
-* التفاف ذكي للنصوص الطويلة لتبدو منسقة على سطرين دون قطع للمعلومات.
-* إمكانية تسجيل عائلة جديدة أو تعديل سجل قائم أو الحذف الآمن مع نافذة تأكيد مخصصة لمنع الأخطاء البشرية.
+### ✨ المميزات الرئيسية:
+- **👑 لوحة المشرف العام (SuperAdmin Dashboard):** إدارة شاملة للمخيمات، تعديل الاشتراك وفترات التجربة، إدارة حسابات المدراء، تخصيص حساب المشرف، وإنشاء الإعلانات والتنبيهات العاجلة.
+- **📊 مخططات ونسب متحركة (Animated Donut Charts):** رسومات بيانية دائرية متحركة تصاعدياً لحساب نسب الحالات الحرجة، نسبة الأطفال، شمولية الترشيح، والبالغين.
+- **📋 إدارة السجلات والترشيحات:** جداول تفاعلية متطورة لإدارة بيانات العائلات والترشيحات، البحث الفوري، الفلترة الذكية، وتصدير التقارير المعتمدة بصيغ PDF و Excel.
+- **📱 تصميم متجاوب 100% للهواتف:** شريط تنقل سفلي فاخر للهواتف المحمولة يسهل الوصول السريع والتنقل بين أقسام المنظومة.
+- **🔒 الأمان والحماية:** تشفير بيانات LocalStorage عند انقطاع الاتصال ومزامنة تلقائية مع سحابة Supabase.
 
-### 3. 🖨️ طباعة وتصدير PDF احترافي (Landscape Print Page)
-* مسار مخصص وآمن للطباعة والـ PDF في الرابط `/print` يحل مشكلة المتصفحات الأمنية.
-* إخفاء ترويسات وتذييلات المتصفح المزعجة تلقائياً (مثل اسم React App ورابط الصفحة والتاريخ).
-* تنسيق أفقي (A4 Landscape) مجهز بترويسة رسمية للمخيم، وشعار ذهبي دائري، مع بيانات مسؤول المخيم وتوقيعه المعتمد.
-* توليد إحصائي ملخص لعدد العائلات والأفراد أعلى التقرير المطبوع.
-
-### 4. 💚 استيراد وتصدير كشوفات Excel
-* **التصدير:** تصدير الكشف الحالي بالكامل بضغطة زر إلى ملف Excel منسق تلقائياً مع تفعيل خاصية القراءة من اليمين إلى اليسار (RTL).
-* **الاستيراد الفوري:** زر مخصص لاستيراد وتهيئة الـ 121 عائلة الأساسية للمخيم بضغطة زر واحدة لتسهيل البدء الفوري للعمل.
-
-### 5. 👨‍💻 السيرة الذاتية للمطور (Developer Profile)
-* نافذة منبثقة مميزة ومصممة بعناية تعرض الملف التعريفي والشهادات الأكاديمية والمشاريع السابقة للمطور **المهندس إبراهيم مقبل** مع أزرار تواصل مباشر وآمنة (تتضمن الواتساب المباشر، Behance ،GitHub وموقعه الشخصي).
+### 🛠️ التقنيات المستخدمة:
+- **Framework:** Next.js 15 (React 19)
+- **Database & Auth:** Supabase (PostgreSQL) + LocalStorage Fallback Encryption
+- **UI & Styling:** Modern Glassmorphism & Vanilla CSS with CSS Variables
+- **Icons:** React Icons
+- **Exporting:** SheetJS (XLSX) & Browser Native Print API for PDF
 
 ---
 
-## 🛠️ التقنيات المستخدمة (Tech Stack)
+## 🇬🇧 English
 
-* **الواجهة الأمامية (Frontend):** React.js (v19)
-* **قاعدة البيانات والمصادقة:** Google Firebase (Firestore Database & Auth)
-* **التنسيق البصري:** Vanilla CSS مع أنظمة متغيرات ألوان مرنة ورموز ألوان مخصصة.
-* **المكتبات المساعدة:** 
-  * `react-icons` للرموز التفاعلية.
-  * `xlsx` لمعالجة ملفات الإكسل.
-  * `react-router-dom` للتنقل بين الصفحات والطباعة.
+A comprehensive, cloud-native **Multi-Camp & Relief Management System** built with **Next.js 15** and **Supabase (PostgreSQL)**. Designed for displaced camp administration, relief distribution tracking, nomination management, and subscription management. Features interactive animated statistics, live data filtering, PDF/Excel export capabilities, and full mobile optimization.
 
----
+### ✨ Key Features:
+- **👑 SuperAdmin Control Panel:** Manage registered camps, update subscription plans & expiry dates, change administrative accounts, and push global announcement bars.
+- **📊 Animated Donut & Progress Charts:** Real-time animated donut charts and progress bars for vulnerable cases, age demographics (children vs adults), and nomination coverage.
+- **📋 Comprehensive Family & Nomination Records:** Detailed 12-column interactive data tables with real-time search, multi-field filtering, and secure export options (PDF Landscape & Formatted Excel).
+- **📱 100% Mobile Optimized:** Bottom navigation bar for mobile devices ensuring frictionless operation on smartphones.
+- **🔒 Security & Resilience:** End-to-end local data encryption fallback and live Supabase Cloud synchronization.
 
-## ⚙️ متطلبات التشغيل والتثبيت (Installation)
-
-لتشغيل المشروع محلياً على جهازك، تأكد من تثبيت بيئة [Node.js](https://nodejs.org)، ثم اتبع الخطوات التالية:
-
-1. **تحميل المشروع وفك الضغط أو عمل Clone له:**
-   ```bash
-   git clone https://github.com/ibrahimMeqbe1/kareem-camp.git
-   cd kareem-camp
-   ```
-
-2. **تثبيت الحزم البرمجية (Dependencies):**
-   ```bash
-   npm install
-   ```
-
-3. **إعداد متغيرات البيئة (Firebase Config):**
-   قم بإنشاء ملف باسم `.env` في المجلد الرئيسي للمشروع وضع فيه بيانات مشروع Firebase الخاص بك كالتالي:
-   ```env
-   REACT_APP_FIREBASE_API_KEY=your_api_key
-   REACT_APP_FIREBASE_AUTH_DOMAIN=your_auth_domain
-   REACT_APP_FIREBASE_PROJECT_ID=your_project_id
-   REACT_APP_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-   REACT_APP_FIREBASE_APP_ID=your_app_id
-   ```
-
-4. **التشغيل في بيئة التطوير المحلية:**
-   ```bash
-   npm start
-   ```
-   *سيفتح المشروع تلقائياً في المتصفح على الرابط:* **[http://localhost:3000](http://localhost:3000)**
-
-5. **تجميع نسخة الإنتاج الفعلي (Build):**
-   ```bash
-   npm run build
-   ```
-   *الملفات الناتجة ستكون داخل مجلد `build/` جاهزة للاستضافة في أي خادم سحابي.*
+### 🛠️ Tech Stack:
+- **Framework:** Next.js 15 (React 19)
+- **Database:** Supabase (PostgreSQL) + AES Encrypted LocalStorage Fallback
+- **Styling:** CSS3 Design System with Variables & Custom Animations
+- **Icons:** React Icons (`fa`)
+- **Exporting Tools:** SheetJS (`xlsx`) & Native PDF Printing Engine
 
 ---
 
-## 👨‍💻 مطور النظام (Developer)
+## 👨‍💻 Developer Information | بيانات المطور
 
-* **الاسم:** المهندس إبراهيم مقبل (Eng. Ibrahim Meqbel)
-* **التخصص:** تكنولوجيا المعلومات التطبيقية - جامعة الأقصى
-* **الموقع الشخصي:** [ibrahimmeqbel.netlify.app](https://ibrahimmeqbel.netlify.app)
-* **معرض الأعمال (Behance):** [behance.net/ibrahimmeqbel](https://www.behance.net/ibrahimmeqbel)
-* **حساب GitHub:** [github.com/ibrahimMeqbe1](https://github.com/ibrahimMeqbe1)
-* **البريد الإلكتروني:** 7ema.meqbe1@gmail.com
-* **واتساب مباشر:** [+970597163242](https://wa.me/970597163242)
-
----
-*تم تطوير هذا العمل للمساهمة في خدمة وتسهيل إدارة شؤون النازحين بمخيم كريم ببلدة جباليا الأبية.*
+* **Developer / المطور:** Eng. Ibrahim Meqbel (المهندس إبراهيم مقبل)
+* **GitHub:** [github.com/ibrahimMeqbe1](https://github.com/ibrahimMeqbe1)
+* **Portfolio:** [ibrahimmeqbel.netlify.app](https://ibrahimmeqbel.netlify.app)
+* **Behance:** [behance.net/ibrahimmeqbel](https://www.behance.net/ibrahimmeqbel)
+* **Email:** 7ema.meqbe1@gmail.com
+* **WhatsApp:** [+970597163242](https://wa.me/970597163242)
