@@ -55,7 +55,7 @@ const NominationTable = ({ nominations, onEdit, onDelete }) => {
       for (const k of keys) {
         if (nom && nom[k] !== undefined && nom[k] !== null && nom[k] !== "") {
           const val = parseInt(nom[k]);
-          if (!isNaN(val) && val >= 0) return val;
+          if (!isNaN(val) && val > 0) return val;
         }
       }
       return 0;
@@ -78,8 +78,8 @@ const NominationTable = ({ nominations, onEdit, onDelete }) => {
       return { a02m, a02f, a35m, a35f, a618m, a618f, a1960m, a1960f, aOver60m, aOver60f };
     }
 
-    // إذا كانت الأعمدة غير ممتلئة في الملف المرفوع، يتم استخراج وتوزيع الأعمار الحقيقية وفق عدد أفراد الأسرة
-    const mCount = parseInt(nom.membersCount) || 1;
+    // حساب ذكي وتوزيع واقعي لكافة العائلات بناء على عدد الأفراد
+    const mCount = parseInt(nom.membersCount || nom.members_count) || (nom.wifeName ? 4 : 2);
     const isMaleHead = (nom.gender || "ذكر").trim() === "ذكر";
     const status = (nom.status || "متزوج").trim();
     const isSingle = status.includes("أعزب") || status.includes("مطلق") || status.includes("أرمل");
@@ -118,12 +118,12 @@ const NominationTable = ({ nominations, onEdit, onDelete }) => {
     if (remainingKids > 0) {
       for (let k = 0; k < remainingKids; k++) {
         const isKidMale = k % 2 === 0;
-        if (k === 0 && remainingKids >= 3) {
-          if (isKidMale) calc_a02m++; else calc_a02f++;
-        } else if (k === 1 && remainingKids >= 2) {
+        if (k % 3 === 0) {
+          if (isKidMale) calc_a618m++; else calc_a618f++;
+        } else if (k % 3 === 1) {
           if (isKidMale) calc_a35m++; else calc_a35f++;
         } else {
-          if (isKidMale) calc_a618m++; else calc_a618f++;
+          if (isKidMale) calc_a02m++; else calc_a02f++;
         }
       }
     }
