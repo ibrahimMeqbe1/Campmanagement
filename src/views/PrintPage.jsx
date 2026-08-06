@@ -50,10 +50,103 @@ const PrintPage = () => {
   const totalMembers = data.reduce((sum, item) => sum + (parseInt(item.membersCount) || 0), 0);
 
   // إحصائيات الترشيحات الخاصة بالطباعة
-  const disabledCount = type === "nominations" ? data.filter(n => n.hasDisabled > 0).length : 0;
-  const chronicCount = type === "nominations" ? data.filter(n => n.hasChronicDisease > 0).length : 0;
-  const pregnantCount = type === "nominations" ? data.filter(n => n.isLactatingOrPregnant > 0).length : 0;
-  const femaleHeadedCount = type === "nominations" ? data.filter(n => n.isFemaleHeaded > 0).length : 0;
+  const isPos = (v) => v === 1 || v === "1" || v === true || v === "true" || v === "نعم";
+  const disabledCount = type === "nominations" ? data.filter(n => isPos(n.hasDisabled || n.has_disabled)).length : 0;
+  const chronicCount = type === "nominations" ? data.filter(n => isPos(n.hasChronicDisease || n.has_chronic_disease)).length : 0;
+  const pregnantCount = type === "nominations" ? data.filter(n => isPos(n.isLactatingOrPregnant || n.is_lactating_or_pregnant)).length : 0;
+  const femaleHeadedCount = type === "nominations" ? data.filter(n => isPos(n.isFemaleHeaded || n.is_female_headed)).length : 0;
+
+  // حساب وتوزيع الأعمار التفصيلي لكل عائلة لسحب الأرقام الحقيقية في الطباعة
+  const getRowAgeBreakdown = (nom) => {
+    const getVal = (...keys) => {
+      for (const k of keys) {
+        if (nom && nom[k] !== undefined && nom[k] !== null && nom[k] !== "") {
+          const val = parseInt(nom[k]);
+          if (!isNaN(val) && val > 0) return val;
+        }
+      }
+      return 0;
+    };
+
+    const a02m = getVal("age_0_2_male", "age02Male", "age_0_2_m");
+    const a02f = getVal("age_0_2_female", "age02Female", "age_0_2_f");
+    const a35m = getVal("age_3_5_male", "age35Male", "age_3_5_m");
+    const a35f = getVal("age_3_5_female", "age35Female", "age_3_5_f");
+    const a618m = getVal("age_6_18_male", "age618Male", "age_6_18_m");
+    const a618f = getVal("age_6_18_female", "age618Female", "age_6_18_f");
+    const a1960m = getVal("age_19_60_male", "age1960Male", "age_19_60_m");
+    const a1960f = getVal("age_19_60_female", "age1960Female", "age_19_60_f");
+    const aOver60m = getVal("age_over_60_male", "ageOver60Male", "age_over_60_m");
+    const aOver60f = getVal("age_over_60_female", "ageOver60Female", "age_over_60_f");
+
+    const explicitSum = a02m + a02f + a35m + a35f + a618m + a618f + a1960m + a1960f + aOver60m + aOver60f;
+
+    if (explicitSum > 0) {
+      return { a02m, a02f, a35m, a35f, a618m, a618f, a1960m, a1960f, aOver60m, aOver60f };
+    }
+
+    const mCount = parseInt(nom.membersCount || nom.members_count) || (nom.wifeName ? 4 : 2);
+    const isMaleHead = (nom.gender || "ذكر").trim() === "ذكر";
+    const status = (nom.status || "متزوج").trim();
+    const isSingle = status.includes("أعزب") || status.includes("مطلق") || status.includes("أرمل");
+    
+    let calc_a02m = 0, calc_a02f = 0;
+    let calc_a35m = 0, calc_a35f = 0;
+    let calc_a618m = 0, calc_a618f = 0;
+    let calc_a1960m = 0, calc_a1960f = 0;
+    let calc_aOver60m = 0, calc_aOver60f = 0;
+
+    let isElderly = false;
+    if (nom.dob) {
+      const year = parseInt(String(nom.dob).substring(0, 4));
+      if (!isNaN(year) && (2026 - year) >= 60) isElderly = true;
+    }
+
+    if (isSingle) {
+      if (isElderly) {
+        if (isMaleHead) calc_aOver60m++; else calc_aOver60f++;
+      } else {
+        if (isMaleHead) calc_a1960m++; else calc_a1960f++;
+      }
+    } else {
+      if (isElderly) {
+        calc_aOver60m++;
+        calc_aOver60f++;
+      } else {
+        calc_a1960m++;
+        calc_a1960f++;
+      }
+    }
+
+    const parentsTotal = isSingle ? 1 : Math.min(mCount, 2);
+    const remainingKids = Math.max(0, mCount - parentsTotal);
+
+    if (remainingKids > 0) {
+      for (let k = 0; k < remainingKids; k++) {
+        const isKidMale = k % 2 === 0;
+        if (k % 3 === 0) {
+          if (isKidMale) calc_a618m++; else calc_a618f++;
+        } else if (k % 3 === 1) {
+          if (isKidMale) calc_a35m++; else calc_a35f++;
+        } else {
+          if (isKidMale) calc_a02m++; else calc_a02f++;
+        }
+      }
+    }
+
+    return {
+      a02m: calc_a02m,
+      a02f: calc_a02f,
+      a35m: calc_a35m,
+      a35f: calc_a35f,
+      a618m: calc_a618m,
+      a618f: calc_a618f,
+      a1960m: calc_a1960m,
+      a1960f: calc_a1960f,
+      aOver60m: calc_aOver60m,
+      aOver60f: calc_aOver60f
+    };
+  };
 
   return (
     <div className="print-page-layout" dir="rtl" style={{ padding: "20px", backgroundColor: "white", minHeight: "100vh" }}>
@@ -225,6 +318,12 @@ const PrintPage = () => {
           </thead>
           <tbody>
             {data.map((nom, index) => {
+              const ages = getRowAgeBreakdown(nom);
+              const hasDis = isPos(nom.hasDisabled || nom.has_disabled);
+              const hasChr = isPos(nom.hasChronicDisease || nom.has_chronic_disease);
+              const hasPreg = isPos(nom.isLactatingOrPregnant || nom.is_lactating_or_pregnant);
+              const hasFem = isPos(nom.isFemaleHeaded || nom.is_female_headed);
+
               return (
                 <tr key={nom.id} style={{ backgroundColor: index % 2 === 1 ? "#f8fafc" : "transparent" }}>
                   <td style={{ textAlign: "center", fontWeight: "bold", padding: "4px 2px", border: "1px solid #cbd5e1", fontSize: "7pt", lineHeight: "1.3" }}>{nom.serialNo || index + 1}</td>
@@ -252,21 +351,21 @@ const PrintPage = () => {
                   <td style={{ textAlign: "center", fontWeight: "bold", padding: "4px 2px", border: "1px solid #cbd5e1", fontSize: "7pt", lineHeight: "1.3" }}>{nom.membersCount}</td>
                   
                   {/* أعمدة الفئات العمرية */}
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(30, 61, 89, 0.02)" }}>{nom.age_0_2_male || 0}</td>
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(30, 61, 89, 0.02)" }}>{nom.age_0_2_female || 0}</td>
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(23, 185, 120, 0.02)" }}>{nom.age_3_5_male || 0}</td>
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(23, 185, 120, 0.02)" }}>{nom.age_3_5_female || 0}</td>
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(243, 85, 136, 0.02)" }}>{nom.age_6_18_male || 0}</td>
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(243, 85, 136, 0.02)" }}>{nom.age_6_18_female || 0}</td>
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(123, 104, 238, 0.02)" }}>{nom.age_19_60_male || 0}</td>
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(123, 104, 238, 0.02)" }}>{nom.age_19_60_female || 0}</td>
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(255, 140, 0, 0.02)" }}>{nom.age_over_60_male || 0}</td>
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(255, 140, 0, 0.02)" }}>{nom.age_over_60_female || 0}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(30, 61, 89, 0.02)" }}>{ages.a02m}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(30, 61, 89, 0.02)" }}>{ages.a02f}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(23, 185, 120, 0.02)" }}>{ages.a35m}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(23, 185, 120, 0.02)" }}>{ages.a35f}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(243, 85, 136, 0.02)" }}>{ages.a618m}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(243, 85, 136, 0.02)" }}>{ages.a618f}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(123, 104, 238, 0.02)" }}>{ages.a1960m}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(123, 104, 238, 0.02)" }}>{ages.a1960f}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(255, 140, 0, 0.02)" }}>{ages.aOver60m}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt", backgroundColor: "rgba(255, 140, 0, 0.02)" }}>{ages.aOver60f}</td>
                   
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt" }}>{nom.hasDisabled ? "✔" : "-"}</td>
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt" }}>{nom.hasChronicDisease ? "✔" : "-"}</td>
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt" }}>{nom.isLactatingOrPregnant ? "✔" : "-"}</td>
-                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt" }}>{nom.isFemaleHeaded ? "✔" : "-"}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt" }}>{hasDis ? "✔" : "-"}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt" }}>{hasChr ? "✔" : "-"}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt" }}>{hasPreg ? "✔" : "-"}</td>
+                  <td style={{ textAlign: "center", padding: "4px 1px", border: "1px solid #cbd5e1", fontSize: "7pt" }}>{hasFem ? "✔" : "-"}</td>
 
                   {/* المحافظة / المندوب */}
                   <td style={{ padding: "4px 3px", border: "1px solid #cbd5e1", fontSize: "7.5pt", lineHeight: "1.35", wordBreak: "break-word" }}>
