@@ -189,7 +189,7 @@ const PrintPage = () => {
           table.print-table {
             width: 100% !important;
             border-collapse: collapse !important;
-            table-layout: fixed !important;
+            table-layout: auto !important;
             page-break-inside: auto;
           }
           table.print-table tr {
@@ -197,20 +197,21 @@ const PrintPage = () => {
             page-break-after: auto;
           }
           table.print-table th, table.print-table td {
-            line-height: 1.4 !important;
+            line-height: 1.45 !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
             border: 1.5px solid #0f172a !important;
             color: #000000 !important;
-            font-size: 8.5pt !important;
+            font-size: 9pt !important;
             font-weight: 700 !important;
-            padding: 4px 2px !important;
+            padding: 5px 3px !important;
           }
           table.print-table th {
             font-weight: 900 !important;
             background-color: #0f5132 !important;
             color: #ffffff !important;
-            font-size: 9pt !important;
+            font-size: 9.5pt !important;
+            padding: 6px 4px !important;
           }
         }
 
@@ -345,7 +346,7 @@ const PrintPage = () => {
       {/* جدول البيانات العريض المسطح */}
       <div className="print-table-wrapper">
         {type === "nominations" ? (
-          <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", marginBottom: "30px", direction: "rtl", tableLayout: "fixed" }}>
+          <table className="print-table" style={{ width: "100%", borderCollapse: "collapse", marginBottom: "30px", direction: "rtl", tableLayout: "auto" }}>
           <thead>
             {/* الصف الأول من الهيدر */}
             <tr style={{ backgroundColor: "#0f5132", color: "white" }}>
