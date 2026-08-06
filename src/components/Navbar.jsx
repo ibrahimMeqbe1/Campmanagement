@@ -33,33 +33,21 @@ const Navbar = ({ user, campProfile, onLogout }) => {
         {/* الشعار والعنوان */}
         <Link href="/" className="navbar-brand">
           <div className="brand-icon-wrapper">
-            {campProfile?.logoUrl ? (
-              <img 
-                src={campProfile.logoUrl} 
-                alt={`شعار ${campProfile?.name || "المخيم"}`} 
-                className="navbar-logo" 
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }} 
-              />
-            ) : (
-              <FaCampground className="brand-default-icon" />
-            )}
+            <img 
+              src={campProfile?.logoUrl || "/logo.jpg"} 
+              alt={`شعار ${campProfile?.name || "المخيم"}`} 
+              className="navbar-logo" 
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/logo.jpg";
+              }} 
+            />
           </div>
           <div className="navbar-titles">
             <span className="navbar-title-main">{campProfile?.name || "نظام إدارة المخيمات"}</span>
             <span className="navbar-title-sub">المنصة الشاملة للخدمات والإغاثة</span>
           </div>
         </Link>
-
-        {/* زر فتح قائمة الجوال */}
-        <button 
-          className="mobile-menu-toggle"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="القائمة"
-        >
-          {mobileMenuOpen ? <FaTimes /> : <FaBars />}
-        </button>
 
         {/* روابط التنقل الرئيسية */}
         {user && (

@@ -3261,6 +3261,78 @@ select.form-control {
 }
 
 @media (max-width: 768px) {
+  /* شريط التصفح العلوي الهاتفي */
+  .navbar {
+    padding: 8px 12px !important;
+  }
+
+  .navbar-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    max-width: 100% !important;
+  }
+
+  .navbar-brand {
+    gap: 8px !important;
+  }
+
+  .brand-icon-wrapper {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+  }
+
+  .navbar-title-main {
+    font-size: 0.98rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .navbar-title-sub {
+    display: none !important;
+  }
+
+  .mobile-menu-toggle,
+  .navbar-links {
+    display: none !important;
+  }
+
+  .navbar-left {
+    gap: 6px !important;
+  }
+
+  .subscription-countdown-pill,
+  .demo-badge {
+    display: none !important;
+  }
+
+  .user-name-text {
+    display: none !important;
+  }
+
+  .user-pill-info {
+    padding: 4px 8px !important;
+    border-radius: 50px !important;
+  }
+
+  .user-avatar-circle {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .btn-logout-icon span {
+    display: none !important;
+  }
+
+  .btn-logout-icon {
+    padding: 6px 10px !important;
+    font-size: 0.85rem !important;
+    border-radius: 50px !important;
+  }
+
   /* شريط التصفح السفلي للهواتف الذكية */
   .mobile-bottom-nav {
     display: flex;
@@ -3268,14 +3340,15 @@ select.form-control {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 64px;
+    height: 62px;
     background: #0f172a;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     z-index: 1000;
     justify-content: space-around;
     align-items: center;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
     padding: 0 4px;
   }
 
@@ -3304,40 +3377,62 @@ select.form-control {
   }
 
   .mobile-nav-icon {
-    font-size: 1.25rem;
+    font-size: 1.22rem;
     transition: transform 0.2s ease;
   }
 
   /* إضافة هامش سفلي للمحتوى الرئيسي لتجنب التغطية بشريط الهاتف */
-  body {
-    padding-bottom: 75px !important;
+  body, .dashboard-container, .families-container, .nominations-container {
+    padding-bottom: 80px !important;
   }
 
   .main-content-layout {
     padding: 0.8rem 0.6rem !important;
   }
 
-  /* ترويسات الصفحات للهواتف */
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1.2rem !important;
-    border-radius: 18px !important;
+  /* ترويسات لوحة التحكم للهواتف */
+  .dashboard-header, .page-header {
+    flex-direction: column !alignment;
+    text-align: center !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    padding: 1.25rem 1rem !important;
+    border-radius: 20px !important;
   }
 
-  .page-header-actions {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  .dashboard-header .header-brand, .dashboard-header > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
     gap: 8px;
   }
 
-  .page-header-actions .btn {
-    width: 100%;
-    justify-content: center;
-    padding: 10px 12px;
-    font-size: 0.82rem;
+  .dashboard-logo {
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.35rem !important;
+  }
+
+  .dashboard-header p {
+    font-size: 0.82rem !important;
+  }
+
+  .header-actions, .page-header-actions {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .header-actions .btn, .page-header-actions .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 12px 16px !important;
+    font-size: 0.92rem !important;
   }
 
   /* تحسين عرض المدخلات والنوافذ المنبثقة للموبايل لتفادي التكبير التلقائي */
@@ -3387,6 +3482,7 @@ select.form-control {
   }
 
   .stats-grid {
+    grid-template-columns: 1fr !important;
     gap: 0.8rem !important;
   }
 }
