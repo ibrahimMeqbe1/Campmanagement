@@ -58,7 +58,7 @@ const AnnouncementBar = () => {
         color: "#f8fafc",
         display: "flex",
         alignItems: "center",
-        padding: "8px 20px",
+        padding: "7px 16px",
         fontSize: "0.92rem",
         fontWeight: "600",
         boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -68,6 +68,34 @@ const AnnouncementBar = () => {
         borderBottom: "1px solid rgba(255,255,255,0.15)"
       }}
     >
+      <style>{`
+        @keyframes tickerNewsRTL {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        .announcement-ticker-container {
+          flex: 1;
+          overflow: hidden;
+          position: relative;
+          display: flex;
+          align-items: center;
+          height: 28px;
+        }
+        .announcement-ticker-text {
+          display: inline-block;
+          white-space: nowrap;
+          animation: tickerNewsRTL 20s linear infinite;
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #ffffff;
+          will-change: transform;
+        }
+        .announcement-bar:hover .announcement-ticker-text {
+          animation-play-state: paused;
+        }
+      `}</style>
+
+      {/* الشارة الثابتة على اليمين */}
       <div 
         style={{
           display: "flex",
@@ -75,24 +103,27 @@ const AnnouncementBar = () => {
           gap: "8px",
           backgroundColor: labelBg,
           color: "#ffffff",
-          padding: "4px 14px",
+          padding: "5px 14px",
           borderRadius: "50px",
           whiteSpace: "nowrap",
           marginLeft: "15px",
           fontSize: "0.82rem",
-          fontWeight: "700",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.25)",
-          border: "1px solid rgba(255,255,255,0.15)",
-          flexShrink: 0
+          fontWeight: "800",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+          border: "1px solid rgba(255,255,255,0.2)",
+          flexShrink: 0,
+          zIndex: 5
         }}
       >
-        <Icon style={{ fontSize: "0.85rem" }} />
+        <Icon style={{ fontSize: "0.9rem" }} />
         <span>{labelText}</span>
       </div>
-      <div style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center" }}>
-        <span style={{ fontSize: "0.95rem", fontWeight: "700", color: "#ffffff" }}>
-          {announcement.text}
-        </span>
+
+      {/* المسار المتحرك لشريط الأخبار */}
+      <div className="announcement-ticker-container">
+        <div className="announcement-ticker-text">
+          {announcement.text} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ✦ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {announcement.text}
+        </div>
       </div>
     </div>
   );
